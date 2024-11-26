@@ -13,16 +13,25 @@ class DashboardController extends Controller
         $user = Auth::guard('api')->user();
         return response()->json(['user' => $user]);
     }
-    public function getDashboardData()
+    public function getDashboardData(Request $request)
     {
         try {
-            // Fetch all products with their related orders and customers
-            $products = Product::with(['orders.customer'])->get();
-
-            // Return the data as JSON
-            return response()->json($products);
+            $search = $request->input('search');  // Get search query from request
+    
+            // Fetch products with their orders and customers
+            $query = Product::with(['orders.customer']);
+    
+            // If a search query is provided, filter by product name (coffee_type)
+            if ($search) {
+                $query->where('coffee_type', 'like', '%' . $search . '%');
+            }
+    
+            // Execute query and fetch products
+            $products = $query->get();
+    
+            return response()->json($products);  // Return products as JSON
+    
         } catch (\Exception $e) {
-            // Return error if something goes wrong
             return response()->json(['error' => 'Failed to fetch data.'], 500);
         }
     }
