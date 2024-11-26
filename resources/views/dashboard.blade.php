@@ -29,6 +29,9 @@
             </div>
         </div>
     </div>
+    <div id="dashboardTable" class="container mt-4">
+        <!-- Table will be injected here -->
+    </div>
 
     <script>
         async function fetchUserDetails() {
@@ -64,6 +67,88 @@
                 alert('Logout failed.');
             }
         });
+        async function fetchDashboardData() {
+            try {
+                const token = localStorage.getItem('token'); // Get token from local storage
+                const response = await axios.get('/api/dashboard-data', {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }, // Pass token in the header
+                });
+
+                const products = response.data; // Get the products data from the response
+
+                console.log(products); // Log the data for debugging
+
+                if (products.length === 0) {
+                    document.getElementById('dashboardTable').innerHTML = `
+                <p class="text-center">No data available.</p>
+            `;
+                    return;
+                }
+
+                let tableHTML = `
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Product Name</th>
+                        <th>Order Date</th>
+                        <th>Customer</th>
+                        <th>Quantity</th>
+                        <th>Unit Price</th>
+                        <th>Total Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+                // Loop through each product
+                products.forEach(product => {
+                    // Display product data in the first row
+                    tableHTML += `
+                <tr>
+                    <td colspan="6" class="text-center"><strong>${product.coffee_type} (${product.roast_type}) - ${product.size}</strong></td>
+                </tr>
+            `;
+
+                    // If there are orders for the product
+                    if (product.orders && product.orders.length > 0) {
+                        // Loop through each order for the current product
+                        product.orders.forEach(order => {
+                            tableHTML += `
+                        <tr>
+                            <td>${product.coffee_type} (${product.roast_type})</td>
+                            <td>${order.order_date}</td>
+                            <td>${order.customer ? order.customer.customer_name : 'N/A'}</td>
+                            <td>${order.quantity}</td>
+                            <td>${order.unit_price}</td>
+                            <td>${(order.quantity * order.unit_price).toFixed(2)}</td>
+                        </tr>
+                    `;
+                        });
+                    }
+                });
+
+                tableHTML += `
+                </tbody>
+            </table>
+        `;
+
+                // Display the table in the designated div
+                document.getElementById('dashboardTable').innerHTML = tableHTML;
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById('dashboardTable').innerHTML = `
+            <p class="text-center text-danger">Failed to load data. Please try again.</p>
+        `;
+            }
+        }
+
+        // Call the function to load data
+        fetchDashboardData();
+
+
 
         fetchUserDetails();
     </script>

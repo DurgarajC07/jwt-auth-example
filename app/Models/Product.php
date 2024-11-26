@@ -20,7 +20,7 @@ class Product extends Model
 
     // Relationships
     public function orders()
-    {
-        return $this->hasMany(Order::class, 'product_id');
-    }
+{
+    return $this->hasMany(Order::class);  // Make sure this is the correct relationship
+}
 }
